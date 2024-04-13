@@ -1,18 +1,19 @@
-﻿  main.cpp
-  network.cpp
+﻿  network.cpp
 C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(74,11): warning C4129: '{': unrecognized character escape sequence
 C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(81,11): warning C4129: '{': unrecognized character escape sequence
 C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(93,11): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(138,13): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(162,12): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(191,13): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(200,13): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(204,12): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(236,10): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(259,11): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(277,13): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(296,11): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(309,11): warning C4129: '{': unrecognized character escape sequence
-C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(345,11): warning C4129: '{': unrecognized character escape sequence
-  Generating Code...
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(143,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(201,12): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(221,12): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(241,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(253,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(304,10): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(312,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(328,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(352,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(370,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(416,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(429,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(448,14): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(476,11): warning C4129: '{': unrecognized character escape sequence
   dnd-engine.vcxproj -> C:\Users\euan_\source\repos\dnd-engine\x64\Debug\dnd-engine.exe
