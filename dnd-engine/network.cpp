@@ -108,9 +108,14 @@ void Server::recv_tcp(int slot) {
 				// work out what to do with this
 				break;
 			case DISCONNECT:
-				// close the socket and save
+				// close the sockets and save
 				closesocket(acceptSocket[slot]);
+				closesocket(udpSocket[slot]);
 				acceptSocket[slot] = INVALID_SOCKET;
+				udpSocket[slot] = INVALID_SOCKET;
+				slot_queue[r] = slot;
+				connected -= 1;
+				r = (r + 1) % size;
 				// wipe the player data
 				// forward disconnection to other players
 				char disconnect_msg[MAX_MSG_LEN];
@@ -149,7 +154,41 @@ void Server::recv_tcp(int slot) {
 	}
 }
 
-void Server::check_client(int slot) {
+void Server::recv_udp(int slot, sockaddr_in c_addr) {
+	socklen_t c_len = sizeof(c_addr);
+	while (udpSocket[slot] != INVALID_SOCKET) {
+		Buffer recvbuf;
+		int bytesReceived = recvfrom(udpSocket[slot], (char*)&recvbuf, sizeof(Buffer), 0, (struct sockaddr*)&c_addr, &c_len);
+		if (bytesReceived < 0) {
+			//Error handle
+		}
+		else {
+			if (recvbuf.type == PING) {
+				// Change data of players
+			}
+		}
+	}
+}
+
+void Server::ping_udp(int slot, sockaddr_in c_addr) {
+	int c_len = sizeof(c_addr);
+	while (udpSocket[slot] != INVALID_SOCKET) {
+		for (int i = 0; i < size; i++) {
+			if ((acceptSocket[i] == INVALID_SOCKET) or i == slot) {
+				continue;
+			}
+			else {
+				SendBuff pingbuf(name, players[i].name, PING);
+				int bytesSent = sendto(udpSocket[slot], (char*)&pingbuf, sizeof(Buffer), 0, (struct sockaddr*)&c_addr, c_len);
+				if (bytesSent < 0) {
+					// Error handle
+				}
+			}
+		}
+	}
+}
+
+void Server::check_client(int slot, sockaddr_in c_addr) {
 	struct timeval tv = {.tv_sec = 10000};
 	setsockopt(acceptSocket[slot], SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
 	Buffer buf;
@@ -174,7 +213,18 @@ void Server::check_client(int slot) {
 		// Reset timeout to infinite
 		tv.tv_sec = 0;
 		setsockopt(acceptSocket[slot], SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+
 		// Setup UDP connection
+		udpSocket[slot] = INVALID_SOCKET;
+		udpSocket[slot] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		if (udpSocket[slot] == INVALID_SOCKET) {
+			println("Error at slot \{} udp socket(): \{}", slot, WSAGetLastError());
+			//Error handle
+		}
+		thread udp_ping(&Server::ping_udp, this, slot, c_addr);
+		udp_ping.detach();
+		thread udp_recv(&Server::recv_udp, this, slot, c_addr);
+		udp_recv.detach();
 	}
 	else {
 		println("Connection failed");
@@ -184,7 +234,7 @@ void Server::check_client(int slot) {
 }
 
 void Server::sock_listen() {
-	int connected = 0;
+	for (int i = 0; i < size; i++) slot_queue[i] = i;
 	while (open) {
 		if (connected < size) {
 			if (listen(listenSocket, 1) == SOCKET_ERROR) {
@@ -192,19 +242,23 @@ void Server::sock_listen() {
 				continue;
 			}
 			else {
-				println("Listening for connections.");
+				println("Listening for connections...");
 			}
 
-			acceptSocket[connected] = accept(listenSocket, NULL, NULL);
-			if (acceptSocket[connected] == SOCKET_ERROR) {
+			sockaddr_in client_address;
+			client_address.sin_family = AF_INET;
+			socklen_t c_len = sizeof(client_address);
+			acceptSocket[f] = accept(listenSocket, (sockaddr*)&client_address, &c_len);
+			if (acceptSocket[f] == SOCKET_ERROR) {
 				println("Error at accept(): \{}", WSAGetLastError());
-				closesocket(acceptSocket[connected]);
+				closesocket(acceptSocket[f]);
 				continue;
-			}
-			println("Client \{} joined", connected);	
-			thread check(&Server::check_client, this, connected);
+			}	
+			thread check(&Server::check_client, this, f, client_address);
 			check.detach();
 			connected += 1;
+			slot_queue[f] = -1;
+			f = (f + 1) % size;
 		}
 	}
 }
@@ -213,6 +267,20 @@ int Server::start() {
 	thread listen_thread(&Server::sock_listen, this);
 	listen_thread.detach();
 	println("Connections open.");
+	return 0;
+}
+
+int Server::shutdown() {
+	println("Shutting down");
+	// Kick all player
+	for (int i = 0; i < size; i++) {
+		if ((acceptSocket[i] == INVALID_SOCKET)) continue;
+		else kick(i);
+	}
+	// Close listen socket
+	closesocket(listenSocket);
+	open = false;
+	// Destroy server object
 	return 0;
 }
 
@@ -236,10 +304,35 @@ void Server::send_msg(char m[MAX_MSG_LEN]) {
 	println("\{}: \{}", name, m);
 }
 
+void Server::kick(int slot) {
+	// send disconnect to player
+	SendBuff kckbuf(name, players[slot].name, DISCONNECT);
+	int byteCount = send(acceptSocket[slot], (char*)&kckbuf, sizeof(SendBuff), 0);
+	if (byteCount > 0) {
+		println("Kicked \{}", players[slot].name);
+	}
+	else {
+		//Error handle
+	}
+}
 void Server::kick(char player[MAX_NAME_LEN]) {
 	// send disconnect to player
-	// await a returning disconnect
-	// close socket
+	SendBuff kckbuf(name, player, DISCONNECT);
+	for (int i = 0; i < size; i++) {
+		if ((acceptSocket[i] == INVALID_SOCKET)) {
+			continue;
+		}
+		else if (string(players[i].name) == string(player)) {
+			int byteCount = send(acceptSocket[i], (char*)&kckbuf, sizeof(SendBuff), 0);
+			if (byteCount > 0) {
+				println("Kicked \{}", player);
+			}
+			else {
+				// Error, handle by trying again/disconnectiong client or something
+				continue;
+			}
+		}
+	}
 }
 
 
@@ -282,8 +375,35 @@ void Client::recv_tcp() {
 			}
 		}
 		else {
-			// Error
+			//terminate();
 			continue;
+		}
+	}
+}
+
+void Client::recv_udp(sockaddr_in c_addr) {
+	socklen_t c_len = sizeof(c_addr);
+	while (udpSocket != INVALID_SOCKET) {
+		Buffer recvbuf;
+		int bytesReceived = recvfrom(udpSocket, (char*)&recvbuf, sizeof(Buffer), 0, (struct sockaddr*)&c_addr, &c_len);
+		if (bytesReceived < 0) {
+			//Error handle
+		}
+		else {
+			if (recvbuf.type == PING) {
+				// Change data of players
+			}
+		}
+	}
+}
+
+void Client::ping_udp(sockaddr_in c_addr) {
+	int c_len = sizeof(c_addr);
+	while (udpSocket != INVALID_SOCKET) {
+		SendBuff pingbuf(name, (char[MAX_NAME_LEN])"Server", PING);
+		int bytesSent = sendto(udpSocket, (char*)&pingbuf, sizeof(Buffer), 0, (struct sockaddr*)&c_addr, c_len);
+		if (bytesSent < 0) {
+			// Error handle
 		}
 	}
 }
@@ -322,6 +442,17 @@ int Client::join(string IP) {
 				thread tcp_thread(&Client::recv_tcp, this);
 				tcp_thread.detach();
 				// Create UDP socket
+				udpSocket = INVALID_SOCKET;
+				udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+				if (udpSocket == INVALID_SOCKET) {
+					println("Error at udp socket(): \{}", WSAGetLastError());
+					WSACleanup();
+					throw runtime_error("Socket Failed.");
+				}
+				thread udp_ping(&Client::ping_udp, this, clientService);
+				udp_ping.detach();
+				thread udp_recv(&Client::recv_udp, this, clientService);
+				udp_recv.detach();
 				return 0;
 			}
 			else {
@@ -359,4 +490,6 @@ void Client::disconnect() {
 		// Error, handle
 	}
 	closesocket(clientSocket);
+	clientSocket = INVALID_SOCKET;
+	// destroy client object
 }
