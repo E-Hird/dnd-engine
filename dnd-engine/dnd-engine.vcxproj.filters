@@ -21,6 +21,12 @@
     <ClCompile Include="network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Downloads\targetver.h">
@@ -30,6 +36,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="network.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
