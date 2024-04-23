@@ -37,18 +37,23 @@ void charcpy(char target[], string source) {
 }
 
 // Send Buffer constructor
-SendBuff::SendBuff(char sender[MAX_NAME_LEN], char target[MAX_NAME_LEN], dataType dType, char data[MAX_MSG_LEN]) {
+SendBuff::SendBuff(char sender[MAX_NAME_LEN], char target[MAX_NAME_LEN], dataType dType, char data[MAX_MSG_LEN], int f_slot) {
 	charcpy(from, sender);
 	charcpy(to, target);
 	type = dType;
 	switch (type) {
 	case PING:
-		charcpy(ping, data);
+		charcpy(msg, data);
 		break;
 	case TEXT:
 		charcpy(msg, data);
 		break;
+	case FILE_S:
+	case FILE_E:
+		file_slot = f_slot;
+		break;
 	default:
+		throw exception("Invalid Buffer type");
 		break;
 	}
 }
@@ -206,14 +211,16 @@ void Server::check_client(int slot, sockaddr_in c_addr) {
 		char connect_msg[MAX_MSG_LEN];
 		charcpy(connect_msg, string(buf.from) + " Connected");
 		send_msg(connect_msg);
-		// Send all resources / current connected players
 		// Start tcp recieve
 		thread tcp_thread(&Server::recv_tcp, this, slot);
 		tcp_thread.detach();
 		// Reset timeout to infinite
 		tv.tv_sec = 0;
 		setsockopt(acceptSocket[slot], SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
-
+		// Send all resources / current connected players
+		for (int i = 0; i < file_count-1; i++) {
+			send_file(*files[i], i);
+		}
 		// Setup UDP connection
 		udpSocket[slot] = INVALID_SOCKET;
 		udpSocket[slot] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -304,6 +311,37 @@ void Server::send_msg(char m[MAX_MSG_LEN]) {
 	println("\{}: \{}", name, m);
 }
 
+void Server::send_file(FILE f, int file_slot) {
+	for (int i = 0; i < size; i++) {
+		if ((acceptSocket[i] == INVALID_SOCKET)) {
+			continue;
+		}
+		else {
+			char m[MAX_MSG_LEN] = "";
+			SendBuff f_start(name, players[i].name, FILE_S, m, file_slot);
+			SendBuff f_end(name, players[i].name, FILE_E, m, file_slot);
+			TRANSMIT_FILE_BUFFERS t;
+			t.Head = &f_start;
+			t.HeadLength = sizeof(SendBuff);
+			t.Tail = &f_end;
+			t.TailLength = sizeof(SendBuff);
+			bool sent = TransmitFile(acceptSocket[i], files[file_slot], 0, 0, NULL, &t, 0);
+			if (sent == true) {
+				Buffer check;
+				int byteCount = recv(acceptSocket[i], (char*)&check, sizeof(Buffer), 0);
+				if (byteCount > 0) {
+					if (check.type == FILE_E) println("File sent");
+				}
+				continue;
+			}
+			else {
+				// Error, handle by trying again/disconnectiong client or something
+				continue;
+			}
+		}
+	}
+}
+
 void Server::kick(int slot) {
 	// send disconnect to player
 	SendBuff kckbuf(name, players[slot].name, DISCONNECT);
@@ -357,6 +395,7 @@ void Client::recv_tcp() {
 	while (clientSocket != INVALID_SOCKET) {
 		Buffer recvbuf;
 		int byteCount = recv(clientSocket, (char*)&recvbuf, sizeof(Buffer), 0);
+		bool done;
 		if (byteCount > 0) {
 			switch (recvbuf.type) {
 			case CONNECT:
@@ -368,6 +407,9 @@ void Client::recv_tcp() {
 			case TEXT:
 				// Recieve message, display in chat
 				println("\{}: \{}", recvbuf.from, recvbuf.msg);
+				break;
+			case FILE_S:
+				done = recvFiles(recvbuf.file_slot);
 				break;
 			default:
 				// Error
@@ -406,6 +448,24 @@ void Client::ping_udp(sockaddr_in c_addr) {
 			// Error handle
 		}
 	}
+}
+
+bool Client::recvFiles(int file_slot) {
+	FILE f;
+	int byteCount = recv(clientSocket, (char*)&f, sizeof(FILE), 0);
+	if (byteCount > 0) {
+		Buffer check;
+		byteCount = recv(clientSocket, (char*)&check, sizeof(Buffer), 0);
+		if (byteCount > 0) {
+			if (check.type == FILE_E) {
+				files[file_slot] = &f;
+				SendBuff res(name, check.from, FILE_E, (char[MAX_MSG_LEN])"", file_slot);
+				byteCount = send(clientSocket, (char*)&res, sizeof(SendBuff), 0);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 int Client::join(string IP) {
