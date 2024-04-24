@@ -1,46 +1,14 @@
 #include "network.hpp"
-using namespace std;
+#include "character.hpp"
 
-//charcopy(target, source) to make target = source
-void charcpy(char target[], char source[]) {
-	if (sizeof(target) == sizeof(source)) {
-		switch (sizeof(target)) {
-		case MAX_NAME_LEN/8:
-			for (int i = 0; i < MAX_NAME_LEN; i++) {
-				target[i] = source[i];
-			}
-			break;
-		case MAX_MSG_LEN/8:
-			for (int i = 0; i < MAX_MSG_LEN; i++) {
-				target[i] = source[i];
-			}
-			break;
-		default:
-			throw exception("unacceptable array length");
-			break;
-		}
-	}
-	else {
-		throw exception("arrays must be same length");
-	}
-}
-void charcpy(char target[], string source) {
-	if (sizeof(target)*8 > source.length()) {
-		for (int i = 0; i < source.length(); i++) {
-			target[i] = source[i];
-		}
-		target[source.length()] = '\0';
-	}
-	else {
-		throw exception("string must be shorter than array length");
-	}
-}
+using namespace std;
 
 // Send Buffer constructor
 SendBuff::SendBuff(char sender[MAX_NAME_LEN], char target[MAX_NAME_LEN], dataType dType, char data[MAX_MSG_LEN], int f_slot) {
 	charcpy(from, sender);
 	charcpy(to, target);
 	type = dType;
+	
 	switch (type) {
 	case PING:
 		charcpy(msg, data);
@@ -52,19 +20,17 @@ SendBuff::SendBuff(char sender[MAX_NAME_LEN], char target[MAX_NAME_LEN], dataTyp
 	case FILE_E:
 		file_slot = f_slot;
 		break;
+	case CONNECT:
+	case DISCONNECT:
+		break;
 	default:
 		throw exception("Invalid Buffer type");
 		break;
 	}
 }
 
-//
-void Player::init_player(char pn[MAX_NAME_LEN]) {
-	charcpy(name, pn);
-}
 
 // Server Functions
-
 Server::Server(string sn) {
 	charcpy(name, sn);
 	/// Initialises a listen socket and binds the IP and port
@@ -206,7 +172,7 @@ void Server::check_client(int slot, sockaddr_in c_addr) {
 			println("\{} Connected.", buf.from);
 		}
 		// Make player object to track player
-		players[slot].init_player(buf.from);
+		players[slot].initChr(slot, buf.from);
 		// forward new connection to other players
 		char connect_msg[MAX_MSG_LEN];
 		charcpy(connect_msg, string(buf.from) + " Connected");
@@ -271,6 +237,8 @@ void Server::sock_listen() {
 }
 
 int Server::start() {
+	mySlot = size;
+	players[mySlot].initChr(mySlot, name);
 	thread listen_thread(&Server::sock_listen, this);
 	listen_thread.detach();
 	println("Connections open.");
@@ -477,7 +445,6 @@ int Client::join(string IP) {
 		WSACleanup();
 		throw runtime_error("Socket Failed.");
 	}
-
 	sockaddr_in clientService;
 	int port = 55555;
 	clientService.sin_family = AF_INET;
