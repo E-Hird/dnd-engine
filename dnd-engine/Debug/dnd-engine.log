@@ -1,0 +1,29 @@
+﻿  main.cpp
+  network.cpp
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(29,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(79,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(86,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(98,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(148,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(206,12): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(228,12): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(248,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(260,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(311,10): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(350,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(366,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(390,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(409,13): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(476,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(489,11): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(508,14): warning C4129: '{': unrecognized character escape sequence
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\network.cpp(536,11): warning C4129: '{': unrecognized character escape sequence
+  Source.cpp
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\ui.hpp(4,10): error C1083: Cannot open include file: 'SFML/Graphics.hpp': No such file or directory
+  (compiling source file 'Source.cpp')
+  
+  UI.cpp
+C:\Users\euan_\source\repos\dnd-engine\dnd-engine\ui.hpp(4,10): error C1083: Cannot open include file: 'SFML/Graphics.hpp': No such file or directory
+  (compiling source file 'UI.cpp')
+  
+  Generating Code...

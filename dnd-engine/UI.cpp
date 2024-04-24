@@ -1,4 +1,4 @@
-#include "ui.hpp"
+#include "UI.hpp"
 
 bool button::isClicked(int mousex, int mousey, bool mouseClicked) {
     if ((mousex < xPos + xSize) && (mousex > xPos) && (mousey < yPos + ySize) && (mousey > yPos) && mouseClicked) {

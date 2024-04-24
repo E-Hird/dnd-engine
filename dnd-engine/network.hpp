@@ -1,6 +1,9 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
+#include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include "character.hpp"
 #include <print>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -9,27 +12,16 @@
 #include <thread>
 #include <fstream>
 
-#define MAX_NAME_LEN 64
+
 #define MAX_MSG_LEN 512
 using namespace std;
 
 enum dataType { CONNECT, DISCONNECT, TEXT, PING, FILE_S, FILE_E };
 
-class Player {
-public:
-	char name[MAX_NAME_LEN] = "";
-	int posx = 0;
-	int posy = 0;
-	//icon
-	//ref to character sheet or something
-	void init_player(char pn[MAX_NAME_LEN]);
-};
-
 class Server {
 public:
 	char name[MAX_NAME_LEN];
-	static const int size = 9; // Number of clients allowed to join
-	Player players[size];
+	static const int size = CHR_NUM-1;
 	SOCKET listenSocket, acceptSocket[size], udpSocket[size];
 	WSADATA wsaData;
 	bool open;
@@ -85,6 +77,5 @@ class SendBuff : public Buffer {
 public:
 	SendBuff(char sender[MAX_NAME_LEN], char target[MAX_NAME_LEN], dataType dType, char data[MAX_MSG_LEN] = (char[MAX_MSG_LEN])"", int f_slot = 0);
 };
-
 
 #endif // !NETWORK_H
