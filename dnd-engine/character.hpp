@@ -31,6 +31,8 @@ public:
     //returns a shape for the object
     sf::CircleShape drawing();
 
+    void setNumber(int n);
+
     int getNumber();
 
     void setPosition(int x, int y);

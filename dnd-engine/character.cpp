@@ -62,6 +62,10 @@ sf::CircleShape character::drawing() {
     return shape;
 }
 
+void character::setNumber(int n) {
+	playerNumber = n;
+}
+
 int character::getNumber() {
     return playerNumber;
 }
