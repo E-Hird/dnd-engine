@@ -29,6 +29,43 @@ SendBuff::SendBuff(char sender[MAX_NAME_LEN], char target[MAX_NAME_LEN], dataTyp
 	}
 }
 
+void ping_to_msg(SendBuff target, bool is_server) {
+	char m[MAX_MSG_LEN];
+	if (is_server) {
+		for (int i = 0; i < CHR_NUM; i++) {
+			m[3*i] = players[i].getNumber();
+			m[3*i +1] = players[i].x();
+			m[3*i +2] = players[i].y();
+		}
+		m[CHR_NUM * 3] = '\0';
+	}
+	else {
+		m[0] = players[mySlot].getNumber();
+		m[1] = players[mySlot].x();
+		m[2] = players[mySlot].y();
+		m[3] = '\0';
+	}
+	charcpy(target.msg, m);
+}
+
+void msg_to_ping(Buffer source, bool is_server, int slot=-1) {
+	char m[MAX_MSG_LEN];
+	charcpy(m, source.msg);
+	if (is_server) {
+		players[slot].setPosition((int)m[1], (int)m[2]);
+	}
+	else {
+		for (int i = 0; i < CHR_NUM; i++) {
+			if (i == mySlot) {
+				continue;
+			}
+			else {
+				players[i].setNumber((int) m[3*i]);
+				players[i].setPosition((int) m[3*i+1], (int)m[3*i+2]);
+			}
+		}
+	}
+}
 
 // Server Functions
 Server::Server(string sn) {
@@ -135,7 +172,7 @@ void Server::recv_udp(int slot, sockaddr_in c_addr) {
 		}
 		else {
 			if (recvbuf.type == PING) {
-				// Change data of players
+				msg_to_ping(recvbuf, true, slot);
 			}
 		}
 	}
@@ -150,9 +187,10 @@ void Server::ping_udp(int slot, sockaddr_in c_addr) {
 			}
 			else {
 				SendBuff pingbuf(name, players[i].name, PING);
+				ping_to_msg(pingbuf, true);
 				int bytesSent = sendto(udpSocket[slot], (char*)&pingbuf, sizeof(Buffer), 0, (struct sockaddr*)&c_addr, c_len);
 				if (bytesSent < 0) {
-					// Error handle
+					println("sent ping");
 				}
 			}
 		}
@@ -401,7 +439,7 @@ void Client::recv_udp(sockaddr_in c_addr) {
 		}
 		else {
 			if (recvbuf.type == PING) {
-				// Change data of players
+				msg_to_ping(recvbuf, false);
 			}
 		}
 	}
@@ -411,6 +449,7 @@ void Client::ping_udp(sockaddr_in c_addr) {
 	int c_len = sizeof(c_addr);
 	while (udpSocket != INVALID_SOCKET) {
 		SendBuff pingbuf(name, (char[MAX_NAME_LEN])"Server", PING);
+		ping_to_msg(pingbuf, false);
 		int bytesSent = sendto(udpSocket, (char*)&pingbuf, sizeof(Buffer), 0, (struct sockaddr*)&c_addr, c_len);
 		if (bytesSent < 0) {
 			// Error handle
